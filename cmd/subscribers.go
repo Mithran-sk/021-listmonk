@@ -235,6 +235,12 @@ func (a *App) CreateSubscriber(c echo.Context) error {
 	// Filter lists against the current user's permitted lists.
 	listIDs := user.FilterListsByPerm(auth.PermTypeManage, req.Lists)
 
+	// Ensure the user has required permission for requested lists.
+	if len(req.Lists) != len(listIDs) {
+		return echo.NewHTTPError(http.StatusConflict,
+			"not allowed to assign one or more lists without proper permission")
+	}
+
 	// Insert the subscriber into the DB.
 	sub, _, err := a.core.InsertSubscriber(req.Subscriber, listIDs, nil, req.PreconfirmSubs, false)
 	if err != nil {
